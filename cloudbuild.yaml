@@ -6,14 +6,12 @@ steps:
       'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA',
       '.'
     ]
-    logging: NONE
 
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'push',
       'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA'
     ]
-    logging: NONE
 
   - name: 'gcr.io/cloud-builders/gcloud'
     args: [
@@ -28,7 +26,6 @@ steps:
       'managed',
       '--allow-unauthenticated'
     ]
-    logging: NONE
 
 images:
   - 'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA'
