@@ -1,2 +1,47 @@
-options:
-  logging: 'NONE'  # or 'NONE'
+steps:
+  # Step 1: Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t',
+      'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA',
+      '.'
+    ]
+    logging: NONE  # Disable logging for this step
+
+  # Step 2: Push the Docker image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'push',
+      'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA'
+    ]
+    logging: NONE  # Disable logging for this step
+
+  # Step 3: Deploy the image to Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: [
+      'run',
+      'deploy',
+      'cnstechgroup-rct114-pco-donations',
+      '--image',
+      'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA',
+      '--region',
+      'us-east1',
+      '--platform',
+      'managed',
+      '--allow-unauthenticated'
+    ]
+    logging: NONE  # Disable logging for this step
+
+# Specify the substitution variables to be available in the build
+substitutions:
+  _SERVICE_NAME: "cnstechgroup-rct114-pco-donations"
+  _REGION: "us-east1"
+  _IMAGE: "gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup"
+
+# Timeout for the build
+timeout: "1200s"
+
+# Trigger on commits
+images:
+  - 'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA'
