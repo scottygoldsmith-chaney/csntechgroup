@@ -10,6 +10,8 @@ options:
       # Disable logging for this step
       logging: NONE
       timeout: "1200s"
+  images:
+    - 'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA'
     - name: 'gcr.io/cloud-builders/docker'
       args: [
         'push',
@@ -32,11 +34,12 @@ options:
       ]
       # Disable logging for this step
       logging: NONE
-  # Trigger on commits
-  images:
-    - 'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA'
+
 # Specify the substitution variables to be available in the build
 substitutions:
   _SERVICE_NAME: "cnstechgroup-rct114-pco-donations"
   _REGION: "us-east1"
   _IMAGE: "gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup"
+# Timeout for build
+timeout: "1200s"
+
