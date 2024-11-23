@@ -7,7 +7,8 @@ steps:
       'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA',
       '.'
     ]
-    logging: NONE  # Disable logging for this step
+    options:
+      logging: NONE  # Disable logging for this step
 
   # Step 2: Push the Docker image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
@@ -15,7 +16,8 @@ steps:
       'push',
       'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA'
     ]
-    logging: NONE  # Disable logging for this step
+    options:
+      logging: NONE  # Disable logging for this step
 
   # Step 3: Deploy the image to Cloud Run
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -31,7 +33,8 @@ steps:
       'managed',
       '--allow-unauthenticated'
     ]
-    logging: NONE  # Disable logging for this step
+    options:
+      logging: NONE  # Disable logging for this step
 
 # Specify the substitution variables to be available in the build
 substitutions:
