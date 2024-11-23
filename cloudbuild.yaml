@@ -9,6 +9,7 @@ options:
       ]
       # Disable logging for this step
       logging: NONE
+    timeout: "1200s"
     - name: 'gcr.io/cloud-builders/docker'
       args: [
         'push',
@@ -31,8 +32,6 @@ options:
       ]
       # Disable logging for this step
       logging: NONE
-  # Timeout for the build
-  timeout: "1200s"
   # Trigger on commits
   images:
     - 'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA'
