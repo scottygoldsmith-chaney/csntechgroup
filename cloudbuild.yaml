@@ -9,7 +9,6 @@ options:
       ]
       # Disable logging for this step
       logging: NONE
-      timeout: "1200s"
   images:
     - 'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA'
     - name: 'gcr.io/cloud-builders/docker'
