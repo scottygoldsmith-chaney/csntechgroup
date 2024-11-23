@@ -9,7 +9,7 @@ options:
       ]
       # Disable logging for this step
       logging: NONE
-    timeout: "1200s"
+      timeout: "1200s"
     - name: 'gcr.io/cloud-builders/docker'
       args: [
         'push',
