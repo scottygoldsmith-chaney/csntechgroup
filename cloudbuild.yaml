@@ -1,44 +1,41 @@
-options:
-  steps:
-    - name: 'gcr.io/cloud-builders/docker'
-      args: [
-        'build',
-        '-t',
-        'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA',
-        '.'
-      ]
-      # Disable logging for this step
-      logging: NONE
-  images:
-    - 'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA'
-    - name: 'gcr.io/cloud-builders/docker'
-      args: [
-        'push',
-        'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA'
-      ]
-      # Disable logging for this step
-      logging: NONE
-    - name: 'gcr.io/cloud-builders/gcloud'
-      args: [
-        'run',
-        'deploy',
-        'cnstechgroup-rct114-pco-donations',
-        '--image',
-        'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA',
-        '--region',
-        'us-east1',
-        '--platform',
-        'managed',
-        '--allow-unauthenticated'
-      ]
-      # Disable logging for this step
-      logging: NONE
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t',
+      'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA',
+      '.'
+    ]
+    logging: NONE
 
-# Specify the substitution variables to be available in the build
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'push',
+      'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA'
+    ]
+    logging: NONE
+
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: [
+      'run',
+      'deploy',
+      'cnstechgroup-rct114-pco-donations',
+      '--image',
+      'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA',
+      '--region',
+      'us-east1',
+      '--platform',
+      'managed',
+      '--allow-unauthenticated'
+    ]
+    logging: NONE
+
+images:
+  - 'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA'
+
 substitutions:
   _SERVICE_NAME: "cnstechgroup-rct114-pco-donations"
   _REGION: "us-east1"
   _IMAGE: "gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup"
-# Timeout for build
-timeout: "1200s"
 
+timeout: "1200s"
