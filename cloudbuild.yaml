@@ -31,10 +31,10 @@ options:
         '--allow-unauthenticated'
       ]
       # Disable logging for this step
-      logging: NONE
+       logging: NONE
   # Trigger on commits
-  images:
-    - 'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA'
+       images:
+          - 'gcr.io/csntechgroup/github.com/scottygoldsmith-chaney/csntechgroup:$COMMIT_SHA'
 # Specify the substitution variables to be available in the build
 substitutions:
   _SERVICE_NAME: "cnstechgroup-rct114-pco-donations"
