@@ -8,11 +8,11 @@ bq_client = bigquery.Client()
 
 # Define API endpoint URLs
 ENDPOINTS = {
-    "donations": "https://api.planningcenteronline.com/giving/v2/donations",
-    "designations": "https://api.planningcenteronline.com/giving/v2/designations",
-    "funds": "https://api.planningcenteronline.com/giving/v2/funds",
-    "campuses": "https://api.planningcenteronline.com/giving/v2/campuses",
-    "donors": "https://api.planningcenteronline.com/people/v2/people"
+    "pco-donations": "https://api.planningcenteronline.com/giving/v2/donations",
+    "pco-designations": "https://api.planningcenteronline.com/giving/v2/designations",
+    "pco-funds": "https://api.planningcenteronline.com/giving/v2/funds",
+    "pco-campuses": "https://api.planningcenteronline.com/giving/v2/campuses",
+    "pco-donors": "https://api.planningcenteronline.com/people/v2/people"
 }
 
 def fetch_data(api_credentials, endpoint, filters=None):
@@ -65,7 +65,7 @@ def process_client(client):
     dataset = client["bigquery"]["dataset"]
 
     # Process each endpoint
-    endpoints = ["donations", "designations", "funds", "campuses", "donors"]
+    endpoints = ["pco-donations", "pco-designations", "pco-funds", "pco-campuses", "pco-donors"]
     for endpoint in endpoints:
         filters = None
         if endpoint == "donations":
