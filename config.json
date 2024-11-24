@@ -1,0 +1,14 @@
+{
+    "clients": [
+        {
+            "name": "rct114",
+            "api": {
+                "client_id": "e6f85dc7b9563784d1458ababceaa18bbeca2108db55ab757bfb45b633bdb022",
+                "client_secret": "pco_pat_9546fa8923b2ac1902aca67c3e9c64954a2eedbb6ad6b8884a268e94c96e61b3a684a485"
+            },
+            "bigquery": {
+                "dataset": "csntechgroup.rct114"
+            }
+        }
+    ]
+}
