@@ -1,26 +1,25 @@
-import json
-from utilities import process_endpoint
-from datetime import datetime, timedelta
+from flask import Flask
+import threading
+from utilities import process_all_clients
 
-def main():
-    # Load configuration
-    with open("config.json", "r") as f:
-        config = json.load(f)
-    
-    for client in config["clients"]:
-        print(f"Processing data for client: {client['name']}")
-        process_client(client)
+# Initialize Flask app
+app = Flask(__name__)
 
-def process_client(client):
-    # Retrieve client-specific details
-    api_credentials = client["api"]
-    dataset = client["bigquery"]["dataset"]
-    yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+def run_main_logic():
+    """Run the core logic for processing Planning Center API."""
+    try:
+        print("Starting Planning Center API data processing...")
+        process_all_clients()
+        print("Planning Center API data processing completed.")
+    except Exception as e:
+        print(f"Error in Planning Center API processing: {e}")
 
-    # Process endpoints
-    endpoints = ["donations", "designations", "funds", "campuses", "donors"]
-    for endpoint in endpoints:
-        process_endpoint(api_credentials, dataset, endpoint, yesterday)
+@app.route("/")
+def trigger():
+    """HTTP endpoint to start the main logic."""
+    thread = threading.Thread(target=run_main_logic)
+    thread.start()
+    return "Planning Center API processing started!"
 
 if __name__ == "__main__":
-    main()
+    app.run(host="0.0.0.0", port=8080)
