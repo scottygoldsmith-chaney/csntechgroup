@@ -24,5 +24,7 @@ def trigger():
     return "Planning Center API processing started!"
 
 if __name__ == "__main__":
+    import os
     # Start Flask app to serve the HTTP endpoint
+    port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=8080)
