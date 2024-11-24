@@ -68,7 +68,7 @@ def process_client(client):
     endpoints = ["pco-donations", "pco-designations", "pco-funds", "pco-campuses", "pco-donors"]
     for endpoint in endpoints:
         filters = None
-        if endpoint == "donations":
+        if endpoint == "pco-donations":
             # Filter for completed donations from yesterday
             yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
             filters = {"where[completed_at][gte]": yesterday}
