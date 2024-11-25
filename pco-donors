@@ -1,0 +1,93 @@
+[
+  {
+    "name": "id",
+    "mode": "REQUIRED",
+    "type": "STRING",
+    "description": "The unique identifier for a person",
+    "fields": []
+  },
+  {
+    "name": "permissions",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "The level of Giving access granted to a person",
+    "fields": []
+  },
+  {
+    "name": "email_address",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "An array of email addresses for a person",
+    "fields": []
+  },
+  {
+    "name": "address_line1",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "Address line1 for a person",
+    "fields": []
+  },
+  {
+    "name": "address_line2",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "Address line2 for a person",
+    "fields": []
+  },
+  {
+    "name": "address_city",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "Address city for a person",
+    "fields": []
+  },
+  {
+    "name": "address_state",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "Address state for a person",
+    "fields": []
+  },
+  {
+    "name": "address_postal_code",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "Address postal code for a person",
+    "fields": []
+  },
+  {
+    "name": "address_country",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "Address country for a person",
+    "fields": []
+  },
+  {
+    "name": "phone_number",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "An array of phone number for a person",
+    "fields": []
+  },
+  {
+    "name": "first_name",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "A person's first name",
+    "fields": []
+  },
+  {
+    "name": "last_name",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "A person's last name",
+    "fields": []
+  },
+  {
+    "name": "donor_number",
+    "mode": "NULLABLE",
+    "type": "INTEGER",
+    "description": "The donor number for a person, if applicable",
+    "fields": []
+  }
+]
