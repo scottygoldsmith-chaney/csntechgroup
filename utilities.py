@@ -58,6 +58,10 @@ def load_to_bigquery(dataset, table, data):
     table_id = f"{dataset}.{table}"
     rows = [{"id": item["id"], **item["attributes"]} for item in data]
 
+     # Debug log for rows being prepared
+    print(f"Prepared {len(rows)} rows for BigQuery table: {table_id}")
+    print(f"Sample row: {rows[0] if rows else 'No rows to display'}")
+
     try:
         errors = bq_client.insert_rows_json(table_id, rows)
         if errors:
