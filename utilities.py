@@ -10,10 +10,10 @@ bq_client = bigquery.Client()
 # Define API endpoint URLs
 ENDPOINTS = {
     "pco-donations": "https://api.planningcenteronline.com/giving/v2/donations",
-    "pco-designations": "https://api.planningcenteronline.com/giving/v2/donations/1/designations",
+    "pco-designations": "https://api.planningcenteronline.com/giving/v2/designations",
     "pco-funds": "https://api.planningcenteronline.com/giving/v2/funds",
     "pco-campuses": "https://api.planningcenteronline.com/giving/v2/campuses",
-    "pco-donors": "https://api.planningcenteronline.com/giving/v2/people&per_page=100"
+    "pco-donors": "https://api.planningcenteronline.com/giving/v2/people?per_page=100"
 }
 
 # Helper Functions
@@ -98,7 +98,7 @@ def get_existing_record_ids(dataset, table):
     try:
         query_job = bq_client.query(query)
         results = query_job.result()
-        return {row.id for row in results}
+        return {str(row.id) for row in results}  # Ensure all IDs are treated as strings
     except Exception as e:
         print(f"Error querying existing records from {table_id}: {e}")
         return set()
@@ -114,7 +114,7 @@ def update_records_in_bigquery(table_id, updates):
     query = f"""
     MERGE `{table_id}` T
     USING `{temp_table_id}` S
-    ON T.id = S.id
+    ON CAST(T.id AS STRING) = CAST(S.id AS STRING)
     WHEN MATCHED THEN
       UPDATE SET
         {', '.join([f"T.{col} = S.{col}" for col in updates[0].keys() if col != 'id'])}
@@ -138,7 +138,7 @@ def load_to_bigquery(dataset, table, data):
 
     for item in data:
         attributes = item["attributes"]
-        record_id = item["id"]
+        record_id = str(item["id"])  # Ensure IDs are treated as strings
 
         row = {
             "id": record_id,
@@ -207,3 +207,4 @@ def process_all_clients():
         print(f"Error parsing config.json: {e}")
     except Exception as e:
         print(f"Unexpected error in process_all_clients: {e}")
+
