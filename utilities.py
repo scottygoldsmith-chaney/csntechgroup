@@ -13,7 +13,7 @@ ENDPOINTS = {
     "pco-designations": "https://api.planningcenteronline.com/giving/v2/designations",
     "pco-funds": "https://api.planningcenteronline.com/giving/v2/funds",
     "pco-campuses": "https://api.planningcenteronline.com/giving/v2/campuses",
-    "pco-donors": "https://api.planningcenteronline.com/people/v2/people"
+    "pco-donors": "https://api.planningcenteronline.com/people/v2/people&per_page=100"
 }
 
 def fetch_data(api_credentials, endpoint, filters):
