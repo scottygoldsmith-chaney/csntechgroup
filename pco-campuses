@@ -1,0 +1,68 @@
+[
+  {
+    "name": "id",
+    "mode": "REQUIRED",
+    "type": "STRING",
+    "description": "The unique identifier for a campus",
+    "fields": []
+  },
+  {
+    "name": "name",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "The name for a campus",
+    "fields": []
+  },
+  {
+    "name": "address_line1",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "The address1 for a campus",
+    "fields": []
+  },
+  {
+    "name": "address_line2",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "The address2 for a campus",
+    "fields": []
+  },{
+    "name": "address_city",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "The city for a campus",
+    "fields": []
+  },{
+    "name": "address_state",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "The state for a campus",
+    "fields": []
+  },{
+    "name": "address_postal_code",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "The postal code for a campus",
+    "fields": []
+  },{
+    "name": "address_country",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "The country for a campus",
+    "fields": []
+  },
+  {
+    "name": "created_at",
+    "mode": "NULLABLE",
+    "type": "TIMESTAMP",
+    "description": "Time record was created",
+    "fields": []
+  },
+   {
+    "name": "updated_at",
+    "mode": "NULLABLE",
+    "type": "TIMESTAMP",
+    "description": "Time record was updated",
+    "fields": []
+  }
+]
