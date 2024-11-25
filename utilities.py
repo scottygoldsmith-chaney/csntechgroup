@@ -120,8 +120,8 @@ def load_to_bigquery(dataset, table, data):
                 "id": item["id"],
                 "first_name": attributes.get("first_name"),
                 "last_name": attributes.get("last_name"),
-                "email": extract_first_email(emails),
-                "phone": extract_first_phone(phone_numbers),
+                "email_address": extract_first_email(emails),
+                "phone_number": extract_first_phone(phone_numbers),
                 "created_at": format_datetime(attributes.get("created_at")),
                 "updated_at": format_datetime(attributes.get("updated_at")),
             }
