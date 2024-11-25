@@ -1,0 +1,135 @@
+[
+  {
+    "name": "id",
+    "mode": "REQUIRED",
+    "type": "STRING",
+    "description": "The unique identifier for a donation",
+    "fields": []
+  },
+  {
+    "name": "created_at",
+    "mode": "NULLABLE",
+    "type": "TIMESTAMP",
+    "description": "The date and time at which a donation was created",
+    "fields": []
+  },
+  {
+    "name": "updated_at",
+    "mode": "NULLABLE",
+    "type": "TIMESTAMP",
+    "description": "The date and time at which a donation was last updated",
+    "fields": []
+  },
+  {
+    "name": "payment_method_sub",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "For cards, this will be the card subtype",
+    "fields": []
+  },
+  {
+    "name": "payment_last4",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "The last 4 digits of a donation's payment method number",
+    "fields": []
+  },
+  {
+    "name": "payment_brand",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "For cards, this is the card brand (eg Visa, Mastercard, etc)",
+    "fields": []
+  },
+  {
+    "name": "payment_check_number",
+    "mode": "NULLABLE",
+    "type": "INTEGER",
+    "description": "The check number for donations made by check",
+    "fields": []
+  },
+  {
+    "name": "payment_check_dated_at",
+    "mode": "NULLABLE",
+    "type": "DATE",
+    "description": "The check date for donations made by check",
+    "fields": []
+  },
+  {
+    "name": "fee_cents",
+    "mode": "NULLABLE",
+    "type": "INTEGER",
+    "description": "The fee to process a donation. This should either be 0 or a negative integer",
+    "fields": []
+  },
+  {
+    "name": "payment_method",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "The payment method used to make a donation",
+    "fields": []
+  },
+  {
+    "name": "received_at",
+    "mode": "NULLABLE",
+    "type": "TIMESTAMP",
+    "description": "The date and time at which a donation was received",
+    "fields": []
+  },
+  {
+    "name": "amount_cents",
+    "mode": "NULLABLE",
+    "type": "INTEGER",
+    "description": "The number of cents being donated",
+    "fields": []
+  },
+  {
+    "name": "payment_status",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "For Stripe donations, this is the payment status. For batch donations, pending means that the donation has not yet been committed, whereas succeeded refers to a committed donation",
+    "fields": []
+  },
+  {
+    "name": "completed_at",
+    "mode": "NULLABLE",
+    "type": "TIMESTAMP",
+    "description": "The date and time at which a donation was completely processed",
+    "fields": []
+  },
+  {
+    "name": "fee_covered",
+    "mode": "NULLABLE",
+    "type": "BOOLEAN",
+    "description": "A boolean indicating whether the donor chose to cover the Stripe processing fee for this donation",
+    "fields": []
+  },
+  {
+    "name": "amount_currency",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "The currency of amount_cents",
+    "fields": []
+  },
+  {
+    "name": "fee_currency",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "The currency of fee_cents",
+    "fields": []
+  },
+  {
+    "name": "refunded",
+    "mode": "NULLABLE",
+    "type": "BOOLEAN",
+    "description": "Returns true if a donation has been refunded, or false if it hasn't",
+    "fields": []
+  },
+  {
+    "name": "refundable",
+    "mode": "NULLABLE",
+    "type": "BOOLEAN",
+    "description": "A boolean indicating whether this donation can be refunded via the API",
+    "fields": []
+  }
+]
