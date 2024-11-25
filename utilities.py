@@ -10,10 +10,10 @@ bq_client = bigquery.Client()
 # Define API endpoint URLs
 ENDPOINTS = {
     "pco-donations": "https://api.planningcenteronline.com/giving/v2/donations",
-    "pco-designations": "https://api.planningcenteronline.com/giving/v2/designations",
+    "pco-designations": "https://api.planningcenteronline.com/giving/v2/donations/1/designations",
     "pco-funds": "https://api.planningcenteronline.com/giving/v2/funds",
     "pco-campuses": "https://api.planningcenteronline.com/giving/v2/campuses",
-    "pco-donors": "https://api.planningcenteronline.com/people/v2/people&per_page=100"
+    "pco-donors": "https://api.planningcenteronline.com/giving/v2/people&per_page=100"
 }
 
 # Helper Functions
@@ -59,7 +59,6 @@ def extract_first_phone(phone_numbers):
         return None
     return phone_numbers[0].get("number")
 
-# Core Functions
 def fetch_data(api_credentials, endpoint, filters=None):
     """Fetch data from Planning Center API with optional filters."""
     base_url = ENDPOINTS[endpoint]
@@ -79,7 +78,6 @@ def fetch_data(api_credentials, endpoint, filters=None):
             data = response.json()
             fetched_data = data["data"]
 
-            # Filter donations for `payment_status = 'succeeded'`
             if endpoint == "pco-donations":
                 fetched_data = [item for item in fetched_data if item["attributes"].get("payment_status") == "succeeded"]
 
@@ -93,55 +91,83 @@ def fetch_data(api_credentials, endpoint, filters=None):
     print(f"Total records fetched from {endpoint}: {len(all_data)}")
     return all_data
 
+def get_existing_record_ids(dataset, table):
+    """Query BigQuery to retrieve IDs of existing records."""
+    table_id = f"{dataset}.{table}"
+    query = f"SELECT id FROM `{table_id}`"
+    try:
+        query_job = bq_client.query(query)
+        results = query_job.result()
+        return {row.id for row in results}
+    except Exception as e:
+        print(f"Error querying existing records from {table_id}: {e}")
+        return set()
+
+def update_records_in_bigquery(table_id, updates):
+    """Update existing records in BigQuery."""
+    temp_table_id = f"{table_id}_temp"
+
+    job_config = bigquery.LoadJobConfig(write_disposition="WRITE_TRUNCATE")
+    job = bq_client.load_table_from_json(updates, temp_table_id, job_config=job_config)
+    job.result()
+
+    query = f"""
+    MERGE `{table_id}` T
+    USING `{temp_table_id}` S
+    ON T.id = S.id
+    WHEN MATCHED THEN
+      UPDATE SET
+        {', '.join([f"T.{col} = S.{col}" for col in updates[0].keys() if col != 'id'])}
+    """
+    query_job = bq_client.query(query)
+    query_job.result()
+
+    bq_client.delete_table(temp_table_id, not_found_ok=True)
+
 def load_to_bigquery(dataset, table, data):
-    """Load data into BigQuery, skipping empty data sets."""
+    """Load data into BigQuery, updating existing records and inserting new ones."""
     if not data:
         print(f"No data to insert for table: {table}")
         return
 
     table_id = f"{dataset}.{table}"
-    rows = []
+    inserts = []
+    updates = []
+
+    existing_ids = get_existing_record_ids(dataset, table)
 
     for item in data:
         attributes = item["attributes"]
-        if table == "pco-campuses":
-            address = flatten_address_object(attributes.get("address", {}))
-            row = {
-                "id": item["id"],
-                "name": attributes.get("name"),
-                "created_at": format_datetime(attributes.get("created_at")),
-                "updated_at": format_datetime(attributes.get("updated_at")),
-                **address,
-            }
-        elif table == "pco-donors":
-            emails = attributes.get("emails", [])
-            phone_numbers = attributes.get("phone_numbers", [])
-            row = {
-                "id": item["id"],
-                "first_name": attributes.get("first_name"),
-                "last_name": attributes.get("last_name"),
-                "email_address": extract_first_email(emails),
-                "phone_number": extract_first_phone(phone_numbers),
-                "created_at": format_datetime(attributes.get("created_at")),
-                "updated_at": format_datetime(attributes.get("updated_at")),
-            }
-        else:
-            row = {
-                "id": item["id"],
-                **attributes,
-                "created_at": format_datetime(attributes.get("created_at")),
-                "updated_at": format_datetime(attributes.get("updated_at")),
-            }
-        rows.append(row)
+        record_id = item["id"]
 
-    try:
-        errors = bq_client.insert_rows_json(table_id, rows)
-        if errors:
-            print(f"Failed to insert rows into {table_id}: {errors}")
+        row = {
+            "id": record_id,
+            **attributes,
+            "created_at": format_datetime(attributes.get("created_at")),
+            "updated_at": format_datetime(attributes.get("updated_at")),
+        }
+
+        if record_id in existing_ids:
+            updates.append(row)
         else:
-            print(f"Inserted {len(rows)} rows into {table_id}.")
-    except Exception as e:
-        print(f"Error loading data into BigQuery for table {table}: {e}")
+            inserts.append(row)
+
+    if inserts:
+        try:
+            errors = bq_client.insert_rows_json(table_id, inserts)
+            if errors:
+                print(f"Failed to insert rows into {table_id}: {errors}")
+            else:
+                print(f"Inserted {len(inserts)} new rows into {table_id}.")
+        except Exception as e:
+            print(f"Error inserting data into BigQuery for table {table}: {e}")
+
+    if updates:
+        try:
+            update_records_in_bigquery(table_id, updates)
+            print(f"Updated {len(updates)} existing rows in {table_id}.")
+        except Exception as e:
+            print(f"Error updating data in BigQuery for table {table}: {e}")
 
 def process_client(client):
     """Process all endpoints for a single client."""
@@ -152,10 +178,7 @@ def process_client(client):
         filters = None
         if endpoint == "pco-donations":
             yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
-            filters = {
-                "where[completed_at][gte]": yesterday,
-                "per_page": 100
-            }
+            filters = {"where[completed_at][gte]": yesterday}
 
         print(f"Processing endpoint: {endpoint} for client: {client['name']}")
         try:
