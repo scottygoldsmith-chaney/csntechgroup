@@ -33,12 +33,20 @@ def fetch_data(api_credentials, endpoint, filters=None):
             response = requests.get(next_url, headers=headers, params=params)
             response.raise_for_status()
             data = response.json()
+            
+            # Debug log for fetched data
+            print(f"Fetched {len(data['data'])} records from page: {next_url}")
             all_data.extend(data["data"])
+            
+             # Debug log for pagination
             next_url = data["links"].get("next")
+            print(f"Next URL: {next_url}")
         except requests.exceptions.RequestException as e:
             print(f"Error fetching data for endpoint {endpoint}: {e}")
             break
 
+    # Debug log for total records
+    print(f"Total records fetched from {endpoint}: {len(all_data)}")
     return all_data
 
 def load_to_bigquery(dataset, table, data):
