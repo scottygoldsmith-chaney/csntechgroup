@@ -2,6 +2,7 @@ import requests
 import json
 from google.cloud import bigquery
 from datetime import datetime, timedelta
+import base64
 
 # Initialize BigQuery client
 bq_client = bigquery.Client()
@@ -15,15 +16,16 @@ ENDPOINTS = {
     "pco-donors": "https://api.planningcenteronline.com/people/v2/people"
 }
 
-def fetch_data(api_credentials, endpoint, filters=None):
+def fetch_data(api_credentials, endpoint, filters):
     """Fetch data from Planning Center API with optional filters."""
     base_url = ENDPOINTS[endpoint]
-    headers = {
-        "Authorization": f"Basic {api_credentials['client_id']}:{api_credentials['client_secret']}"
-    }
-    params = {"per_page": 100}
-    if filters:
-        params.update(filters)
+    
+    # Construct Basic Auth Header
+    token = base64.b64encode(f"{api_credentials['client_id']}:{api_credentials['client_secret']}".encode()).decode()
+    headers = {"Authorization": f"Basic {token}"}
+
+    # Add query parameters for filtering
+    params = filters if filters else {}
 
     all_data = []
     next_url = base_url
@@ -37,22 +39,19 @@ def fetch_data(api_credentials, endpoint, filters=None):
             data = response.json()
             fetched_data = data["data"]
 
-             # Filter donations for payment_status = 'succeeded' if endpoint is donations
+            # Filter donations for `payment_status = 'succeeded'` if endpoint is donations
             if endpoint == "pco-donations":
                 fetched_data = [item for item in fetched_data if item["attributes"].get("payment_status") == "succeeded"]
+
+            print(f"Fetched {len(fetched_data)} records from page.")
+            all_data.extend(fetched_data)
             
-            # Debug log for fetched data
-            print(f"Fetched {len(data['data'])} records from page: {next_url}")
-            all_data.extend(data["data"])
-            
-             # Debug log for pagination
+            # Handle pagination
             next_url = data["links"].get("next")
-            print(f"Next URL: {next_url}")
         except requests.exceptions.RequestException as e:
             print(f"Error fetching data for endpoint {endpoint}: {e}")
             break
 
-    # Debug log for total records
     print(f"Total records fetched from {endpoint}: {len(all_data)}")
     return all_data
 
@@ -65,10 +64,7 @@ def load_to_bigquery(dataset, table, data):
     table_id = f"{dataset}.{table}"
     rows = [{"id": item["id"], **item["attributes"]} for item in data]
 
-     # Debug log for rows being prepared
     print(f"Prepared {len(rows)} rows for BigQuery table: {table_id}")
-    print(f"Sample row: {rows[0] if rows else 'No rows to display'}")
-
     try:
         errors = bq_client.insert_rows_json(table_id, rows)
         if errors:
@@ -84,13 +80,12 @@ def process_client(client):
     dataset = client["bigquery"]["dataset"]
 
     # Process each endpoint
-    endpoints = ["pco-donations", "pco-designations", "pco-funds", "pco-campuses", "pco-donors"]
-    for endpoint in endpoints:
+    for endpoint in ENDPOINTS:
         filters = None
         if endpoint == "pco-donations":
             # Filter for completed donations from yesterday
-            yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
-            filters = {"where[completed_at][gte]": yesterday}
+            yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+            filters = {"where[completed_at][gte]": yesterday&per_page=100}
 
         print(f"Processing endpoint: {endpoint} for client: {client['name']}")
         try:
@@ -102,7 +97,6 @@ def process_client(client):
 def process_all_clients():
     """Process data for all clients defined in config.json."""
     try:
-        # Load client configuration from config.json
         with open("config.json", "r") as f:
             config = json.load(f)
 
