@@ -30,9 +30,16 @@ def fetch_data(api_credentials, endpoint, filters=None):
 
     while next_url:
         try:
+            print(f"Making request to: {next_url}")
             response = requests.get(next_url, headers=headers, params=params)
+            print(f"Response status code: {response.status_code}")
             response.raise_for_status()
             data = response.json()
+            fetched_data = data["data"]
+
+             # Filter donations for payment_status = 'succeeded' if endpoint is donations
+            if endpoint == "pco-donations":
+                fetched_data = [item for item in fetched_data if item["attributes"].get("payment_status") == "succeeded"]
             
             # Debug log for fetched data
             print(f"Fetched {len(data['data'])} records from page: {next_url}")
