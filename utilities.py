@@ -64,15 +64,21 @@ def fetch_data(api_credentials, endpoint, filters=None):
     base_url = ENDPOINTS[endpoint]
     token = base64.b64encode(f"{api_credentials['client_id']}:{api_credentials['client_secret']}".encode()).decode()
     headers = {"Authorization": f"Basic {token}"}
-    params = filters if filters else {}
+
+    # Start with the base URL and include per_page=100 for pagination
+    next_url = f"{base_url}?per_page=100"
+
+    # Add filters if provided
+    if filters:
+        filter_string = "&".join([f"{key}={value}" for key, value in filters.items()])
+        next_url += f"&{filter_string}"
 
     all_data = []
-    next_url = base_url
 
     while next_url:
         try:
             print(f"Making request to: {next_url}")
-            response = requests.get(next_url, headers=headers, params=params)
+            response = requests.get(next_url, headers=headers)
             print(f"Response status code: {response.status_code}")
             response.raise_for_status()
             data = response.json()
@@ -103,42 +109,54 @@ def get_existing_record_ids(dataset, table):
         print(f"Error querying existing records from {table_id}: {e}")
         return set()
 
-def update_records_in_bigquery(table_id, updates):
-    """Update existing records in BigQuery."""
-    temp_table_id = f"{table_id}_temp"
+def cast_to_schema(row, schema):
+    """Cast fields in the row to match the BigQuery schema."""
+    casted_row = {}
+    for field in schema:
+        field_name = field["name"]
+        field_type = field["type"]
+        value = row.get(field_name)
 
-    job_config = bigquery.LoadJobConfig(write_disposition="WRITE_TRUNCATE")
-    job = bq_client.load_table_from_json(updates, temp_table_id, job_config=job_config)
-    job.result()
+        if value is None:
+            casted_row[field_name] = None
+        elif field_type == "STRING":
+            casted_row[field_name] = str(value)
+        elif field_type == "INTEGER":
+            casted_row[field_name] = int(value)
+        elif field_type == "FLOAT":
+            casted_row[field_name] = float(value)
+        elif field_type == "TIMESTAMP":
+            casted_row[field_name] = format_datetime(value)
+        else:
+            casted_row[field_name] = value
 
-    query = f"""
-    MERGE `{table_id}` T
-    USING `{temp_table_id}` S
-    ON CAST(T.id AS STRING) = CAST(S.id AS STRING)
-    WHEN MATCHED THEN
-      UPDATE SET
-        {', '.join([f"T.{col} = S.{col}" for col in updates[0].keys() if col != 'id'])}
-    """
-    query_job = bq_client.query(query)
-    query_job.result()
+    return casted_row
 
-    bq_client.delete_table(temp_table_id, not_found_ok=True)
-
-def load_to_bigquery(dataset, table, data):
-    """Load data into BigQuery, updating existing records and inserting new ones."""
+def load_to_bigquery(dataset, table, data, batch_size=500):
+    """Load data into BigQuery in smaller batches to avoid payload size issues."""
     if not data:
         print(f"No data to insert for table: {table}")
         return
 
     table_id = f"{dataset}.{table}"
-    inserts = []
-    updates = []
 
-    existing_ids = get_existing_record_ids(dataset, table)
+    # Fetch BigQuery schema for the table
+    table_schema = bq_client.get_table(table_id).schema
+    schema = [{"name": field.name, "type": field.field_type} for field in table_schema]
+
+    total_rows = len(data)
+    print(f"Preparing to insert {total_rows} rows into {table_id}.")
+
+    inserts = []
 
     for item in data:
         attributes = item["attributes"]
         record_id = str(item["id"])  # Ensure IDs are treated as strings
+
+        # Flatten the address object
+        if "address" in attributes:
+            flattened_address = flatten_address_object(attributes.pop("address"))
+            attributes.update(flattened_address)
 
         row = {
             "id": record_id,
@@ -147,27 +165,22 @@ def load_to_bigquery(dataset, table, data):
             "updated_at": format_datetime(attributes.get("updated_at")),
         }
 
-        if record_id in existing_ids:
-            updates.append(row)
-        else:
-            inserts.append(row)
+        # Cast row to match schema
+        row = cast_to_schema(row, schema)
+        inserts.append(row)
 
-    if inserts:
+    # Split the data into smaller batches
+    for i in range(0, total_rows, batch_size):
+        batch = inserts[i:i+batch_size]
+        print(f"Inserting batch {i // batch_size + 1} with {len(batch)} rows.")
         try:
-            errors = bq_client.insert_rows_json(table_id, inserts)
+            errors = bq_client.insert_rows_json(table_id, batch)
             if errors:
                 print(f"Failed to insert rows into {table_id}: {errors}")
             else:
-                print(f"Inserted {len(inserts)} new rows into {table_id}.")
+                print(f"Successfully inserted {len(batch)} rows into {table_id}.")
         except Exception as e:
-            print(f"Error inserting data into BigQuery for table {table}: {e}")
-
-    if updates:
-        try:
-            update_records_in_bigquery(table_id, updates)
-            print(f"Updated {len(updates)} existing rows in {table_id}.")
-        except Exception as e:
-            print(f"Error updating data in BigQuery for table {table}: {e}")
+            print(f"Error inserting batch {i // batch_size + 1} into {table_id}: {e}")
 
 def process_client(client):
     """Process all endpoints for a single client."""
@@ -178,7 +191,10 @@ def process_client(client):
         filters = None
         if endpoint == "pco-donations":
             yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
-            filters = {"where[completed_at][gte]": yesterday}
+            filters = {
+                "where[completed_at][gte]": yesterday,
+                "per_page": 100
+            }
 
         print(f"Processing endpoint: {endpoint} for client: {client['name']}")
         try:
@@ -207,4 +223,3 @@ def process_all_clients():
         print(f"Error parsing config.json: {e}")
     except Exception as e:
         print(f"Unexpected error in process_all_clients: {e}")
-
