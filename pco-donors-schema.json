@@ -14,60 +14,146 @@
     "fields": []
   },
   {
-    "name": "email_address",
-    "mode": "NULLABLE",
-    "type": "STRING",
+    "name": "email_addresses",
+    "mode": "REPEATED",
+    "type": "RECORD",
     "description": "An array of email addresses for a person",
-    "fields": []
+    "fields": [
+      {
+        "name": "address",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Email Address"
+      },
+      {
+        "name": "location",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Location of the email (e.g., Home, Work)"
+      },
+      {
+        "name": "blocked",
+        "type": "BOOLEAN",
+        "mode": "NULLABLE",
+        "description": "Whether this is the primary email address"
+      },
+      {
+        "name": "primary",
+        "type": "BOOLEAN",
+        "mode": "NULLABLE",
+        "description": "Whether this is the primary email address"
+      }
+    ]
   },
   {
-    "name": "address_line1",
-    "mode": "NULLABLE",
-    "type": "STRING",
-    "description": "Address line1 for a person",
-    "fields": []
+    "name": "addresses",
+    "mode": "REPEATED",
+    "type": "RECORD",
+    "description": "An array of addresses for a person",
+    "fields": [
+      {
+        "name": "street_line_1",
+        "mode": "NULLABLE",
+        "type": "STRING",
+        "description": "Address Street line1 for a person",
+        "fields": []
+      },
+      {
+        "name": "street_line_2",
+        "mode": "NULLABLE",
+        "type": "STRING",
+        "description": "Address street line2 for a person",
+        "fields": []
+      },
+      {
+        "name": "city",
+        "mode": "NULLABLE",
+        "type": "STRING",
+        "description": "Address city for a person",
+        "fields": []
+      },
+      {
+        "name": "state",
+        "mode": "NULLABLE",
+        "type": "STRING",
+        "description": "Address state for a person",
+        "fields": []
+      },
+      {
+        "name": "zip",
+        "mode": "NULLABLE",
+        "type": "INTEGER",
+        "description": "Address zip code for a person",
+        "fields": []
+      }
+      {
+        "name": "location",
+        "mode": "NULLABLE",
+        "type": "STRING",
+        "description": "Address location for a person",
+        "fields": []
+      },
+      {
+        "name": "primary",
+        "mode": "NULLABLE",
+        "type": "BOOLEAN",
+        "description": "Address is Primary for a person",
+        "fields": []
+      },
+      {
+        "name": "street",
+        "mode": "NULLABLE",
+        "type": "STRING",
+        "description": "Address street for a person",
+        "fields": []
+      },
+      {
+        "name": "line_1",
+        "mode": "NULLABLE",
+        "type": "STRING",
+        "description": "Address line 1 for a person",
+        "fields": []
+      },
+      {
+        "name": "line_2",
+        "mode": "NULLABLE",
+        "type": "INTEGER",
+        "description": "Address line 2 for a person",
+        "fields": []
+      }
+    ]
   },
   {
-    "name": "address_line2",
-    "mode": "NULLABLE",
-    "type": "STRING",
-    "description": "Address line2 for a person",
-    "fields": []
-  },
-  {
-    "name": "address_city",
-    "mode": "NULLABLE",
-    "type": "STRING",
-    "description": "Address city for a person",
-    "fields": []
-  },
-  {
-    "name": "address_state",
-    "mode": "NULLABLE",
-    "type": "STRING",
-    "description": "Address state for a person",
-    "fields": []
-  },
-  {
-    "name": "address_postal_code",
-    "mode": "NULLABLE",
-    "type": "STRING",
-    "description": "Address postal code for a person",
-    "fields": []
-  },
-  {
-    "name": "address_country",
-    "mode": "NULLABLE",
-    "type": "STRING",
-    "description": "Address country for a person",
-    "fields": []
-  },
-  {
-    "name": "phone_number",
-    "mode": "NULLABLE",
-    "type": "STRING",
+    "name": "phone_numbers",
+    "mode": "REPEATED",
+    "type": "RECORD",
     "description": "An array of phone number for a person",
-    "fields": []
+    "fields": [
+      {
+        "name": "number",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Phone number"
+      },
+      {
+        "name": "carrier",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Carrier of the phone number"
+      },
+      {
+        "name": "location",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Location of the phone number (e.g., Mobile, Home)"
+      },
+      {
+        "name": "primary",
+        "type": "BOOLEAN",
+        "mode": "NULLABLE",
+        "description": "Whether this is the primary phone number"
+      }
+    ]
   },
   {
     "name": "first_name",
