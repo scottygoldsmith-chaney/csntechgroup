@@ -10,7 +10,7 @@ bq_client = bigquery.Client()
 # Define API endpoint URLs
 ENDPOINTS = {
     "pco-donations": "https://api.planningcenteronline.com/giving/v2/donations",
-    "pco-designations": "https://api.planningcenteronline.com/giving/v2/designations",
+    "pco-designations": "https://api.planningcenteronline.com/giving/v2/donations/1/designations",
     "pco-funds": "https://api.planningcenteronline.com/giving/v2/funds",
     "pco-campuses": "https://api.planningcenteronline.com/giving/v2/campuses",
     "pco-donors": "https://api.planningcenteronline.com/giving/v2/people?per_page=100"
@@ -27,6 +27,13 @@ def format_datetime(value):
         print(f"Error formatting datetime: {value}, {e}")
         return None
 
+def extract_primary_from_array(array, key):
+    """Extract the primary value for a given key from an array of objects."""
+    if not array:
+        return None
+    primary_item = next((item for item in array if item.get("primary", False)), None)
+    return primary_item.get(key) if primary_item else None
+
 def flatten_address_object(address):
     """Flatten the address object into individual fields."""
     if not address:
@@ -36,66 +43,34 @@ def flatten_address_object(address):
             "address_city": None,
             "address_state": None,
             "address_postal_code": None,
-            "address_country": None,
         }
     return {
-        "address_line1": address.get("line1"),
-        "address_line2": address.get("line2"),
+        "address_line1": address.get("street_line_1"),
+        "address_line2": address.get("street_line_2"),
         "address_city": address.get("city"),
         "address_state": address.get("state"),
-        "address_postal_code": address.get("postal_code"),
-        "address_country": address.get("country"),
+        "address_postal_code": address.get("zip"),
     }
 
-def extract_first_email(emails):
-    """Extract the first email address from the array."""
-    if not emails or len(emails) == 0:
-        return None
-    return emails[0].get("address")
+def flatten_donor_data(attributes):
+    """Flatten donor attributes, including address, email, and phone number."""
+    address = attributes.get("address", [])
+    email_addresses = attributes.get("email_addresses", [])
+    phone_numbers = attributes.get("phone_numbers", [])
 
-def extract_first_phone(phone_numbers):
-    """Extract the first phone number from the array."""
-    if not phone_numbers or len(phone_numbers) == 0:
-        return None
-    return phone_numbers[0].get("number")
+    # Extract address fields
+    flattened_address = flatten_address_object(extract_primary_from_array(address, None)) or {}
 
-def fetch_data(api_credentials, endpoint, filters=None):
-    """Fetch data from Planning Center API with optional filters."""
-    base_url = ENDPOINTS[endpoint]
-    token = base64.b64encode(f"{api_credentials['client_id']}:{api_credentials['client_secret']}".encode()).decode()
-    headers = {"Authorization": f"Basic {token}"}
+    # Extract primary email and phone number
+    primary_email = extract_primary_from_array(email_addresses, "address")
+    primary_phone = extract_primary_from_array(phone_numbers, "number")
 
-    # Start with the base URL and include per_page=100 for pagination
-    next_url = f"{base_url}?per_page=100"
-
-    # Add filters if provided
-    if filters:
-        filter_string = "&".join([f"{key}={value}" for key, value in filters.items()])
-        next_url += f"&{filter_string}"
-
-    all_data = []
-
-    while next_url:
-        try:
-            print(f"Making request to: {next_url}")
-            response = requests.get(next_url, headers=headers)
-            print(f"Response status code: {response.status_code}")
-            response.raise_for_status()
-            data = response.json()
-            fetched_data = data["data"]
-
-            if endpoint == "pco-donations":
-                fetched_data = [item for item in fetched_data if item["attributes"].get("payment_status") == "succeeded"]
-
-            print(f"Fetched {len(fetched_data)} records from page.")
-            all_data.extend(fetched_data)
-            next_url = data["links"].get("next")
-        except requests.exceptions.RequestException as e:
-            print(f"Error fetching data for endpoint {endpoint}: {e}")
-            break
-
-    print(f"Total records fetched from {endpoint}: {len(all_data)}")
-    return all_data
+    # Combine the flattened data
+    return {
+        **flattened_address,
+        "email_address": primary_email,
+        "phone_number": primary_phone,
+    }
 
 def get_existing_record_ids(dataset, table):
     """Query BigQuery to retrieve IDs of existing records."""
@@ -153,10 +128,10 @@ def load_to_bigquery(dataset, table, data, batch_size=500):
         attributes = item["attributes"]
         record_id = str(item["id"])  # Ensure IDs are treated as strings
 
-        # Flatten the address object
-        if "address" in attributes:
-            flattened_address = flatten_address_object(attributes.pop("address"))
-            attributes.update(flattened_address)
+        # Flatten donor-specific fields if processing donors
+        if table == "pco-donors":
+            flattened_donor = flatten_donor_data(attributes)
+            attributes.update(flattened_donor)
 
         row = {
             "id": record_id,
@@ -181,6 +156,44 @@ def load_to_bigquery(dataset, table, data, batch_size=500):
                 print(f"Successfully inserted {len(batch)} rows into {table_id}.")
         except Exception as e:
             print(f"Error inserting batch {i // batch_size + 1} into {table_id}: {e}")
+
+def fetch_data(api_credentials, endpoint, filters=None):
+    """Fetch data from Planning Center API with optional filters."""
+    base_url = ENDPOINTS[endpoint]
+    token = base64.b64encode(f"{api_credentials['client_id']}:{api_credentials['client_secret']}".encode()).decode()
+    headers = {"Authorization": f"Basic {token}"}
+
+    # Start with the base URL and include per_page=100 for pagination
+    next_url = f"{base_url}?per_page=100"
+
+    # Add filters if provided
+    if filters:
+        filter_string = "&".join([f"{key}={value}" for key, value in filters.items()])
+        next_url += f"&{filter_string}"
+
+    all_data = []
+
+    while next_url:
+        try:
+            print(f"Making request to: {next_url}")
+            response = requests.get(next_url, headers=headers)
+            print(f"Response status code: {response.status_code}")
+            response.raise_for_status()
+            data = response.json()
+            fetched_data = data["data"]
+
+            if endpoint == "pco-donations":
+                fetched_data = [item for item in fetched_data if item["attributes"].get("payment_status") == "succeeded"]
+
+            print(f"Fetched {len(fetched_data)} records from page.")
+            all_data.extend(fetched_data)
+            next_url = data["links"].get("next")
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching data for endpoint {endpoint}: {e}")
+            break
+
+    print(f"Total records fetched from {endpoint}: {len(all_data)}")
+    return all_data
 
 def process_client(client):
     """Process all endpoints for a single client."""
