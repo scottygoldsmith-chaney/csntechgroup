@@ -14,42 +14,67 @@
     "fields": []
   },
   {
-    "name": "address_line1",
+    "name": "address",
     "mode": "NULLABLE",
-    "type": "STRING",
-    "description": "The address1 for a campus",
-    "fields": []
-  },
-  {
-    "name": "address_line2",
-    "mode": "NULLABLE",
-    "type": "STRING",
-    "description": "The address2 for a campus",
-    "fields": []
-  },{
-    "name": "address_city",
-    "mode": "NULLABLE",
-    "type": "STRING",
-    "description": "The city for a campus",
-    "fields": []
-  },{
-    "name": "address_state",
-    "mode": "NULLABLE",
-    "type": "STRING",
-    "description": "The state for a campus",
-    "fields": []
-  },{
-    "name": "address_postal_code",
-    "mode": "NULLABLE",
-    "type": "STRING",
-    "description": "The postal code for a campus",
-    "fields": []
-  },{
-    "name": "address_country",
-    "mode": "NULLABLE",
-    "type": "STRING",
-    "description": "The country for a campus",
-    "fields": []
+    "type": "RECORD",
+    "description": "The addresses for a campus",
+    "fields": [
+    {
+      "name": "street_line_1",
+      "mode": "NULLABLE",
+      "type": "STRING",
+      "description": "",
+      "fields": []
+    },{
+      "name": "state",
+      "mode": "NULLABLE",
+      "type": "STRING",
+      "description": "",
+      "fields": []
+    },{
+      "name": "location",
+      "mode": "NULLABLE",
+      "type": "STRING",
+      "description": "",
+      "fields": []
+    },{
+      "name": "line_1",
+      "mode": "NULLABLE",
+      "type": "STRING",
+      "description": "",
+      "fields": []
+    },{
+      "name": "street_line_2",
+      "mode": "NULLABLE",
+      "type": "STRING",
+      "description": "",
+      "fields": []
+      },{
+      "name": "city",
+      "mode": "NULLABLE",
+      "type": "STRING",
+      "description": "",
+      "fields": []
+    },{
+      "name": "zip",
+      "mode": "NULLABLE",
+      "type": "INTEGER",
+      "description": "",
+      "fields": []
+    },{
+      "name": "street",
+      "mode": "NULLABLE",
+      "type": "STRING",
+      "description": "",
+      "fields": []
+    },{
+      "name": "line_2",
+      "mode": "NULLABLE",
+      "type": "STRING",
+      "description": "",
+      "fields": []
+    }
+   ]
   },
   {
     "name": "created_at",
